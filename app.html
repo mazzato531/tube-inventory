@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Inventario de Tubos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .navbar h1 {
+            font-size: 24px;
+            color: #667eea;
+        }
+
+        .navbar-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-nav {
+            padding: 8px 15px;
+            border: none;
+            background: #f0f0f0;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-nav.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-nav:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .navbar .user {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-box h4 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-box .value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+            font-size: 13px;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-entrada {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-salida {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-stock-ok {
+            color: #10b981;
+        }
+
+        .badge-stock-bajo {
+            color: #f59e0b;
+        }
+
+        .badge-stock-no {
+            color: #ef4444;
+        }
+
+        .tubo-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tubo-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .tubo-card h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .tubo-card .nombre {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .tubo-card .medida {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .tubo-card .stock {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .movimientos-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .movimiento-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .movimiento-item:last-child {
+            border-bottom: none;
+        }
+
+        .movimiento-tipo {
+            font-weight: 600;
+            min-width: 60px;
+        }
+
+        .movimiento-detalle {
+            flex: 1;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .movimiento-cantidad {
+            font-weight: bold;
+            color: #667eea;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .navbar-buttons {
+                width: 100%;
+            }
+
+            .btn-nav {
+                flex: 1;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            table th, table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <h1>📦 Sistema de Inventario de Tubos</h1>
+            <div class="navbar-buttons">
+                <button class="btn-nav active" onclick="mostrarTab('dashboard')">Dashboard</button>
+                <button class="btn-nav" onclick="mostrarTab('inventario')">Inventario</button>
+                <button class="btn-nav" onclick="mostrarTab('movimientos')">Movimientos</button>
+            </div>
+            <div class="user">admin (Demo)</div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats">
+                <div class="stat-box">
+                    <h4>Total de Tubos</h4>
+                    <div class="value" id="totalTubos">191</div>
+                </div>
+                <div class="stat-box">
+                    <h4>Stock Total</h4>
+                    <div class="value" id="stockTotal">0</div>
+                </div>
+                <div class="stat-box">
+                    <h4>Entradas Hoy</h4>
+                    <div class="value" id="entradashoy">0</div>
+                </div>
+                <div class="stat-box">
+                    <h4>Salidas Hoy</h4>
+                    <div class="value" id="salidashoy">0</div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>Registrar Movimiento</h3>
+                    <div id="alertMsg" class="alert"></div>
+
+                    <div class="form-group">
+                        <label>Tipo de Movimiento</label>
+                        <select id="tipoMov">
+                            <option value="entrada">📥 Entrada (Producción)</option>
+                            <option value="salida">📤 Salida (Envío)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tubo</label>
+                        <select id="tuboMov" required>
+                            <option value="">-- Selecciona un tubo --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cantidad</label>
+                        <input type="number" id="cantidadMov" min="1" value="50" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ubicación</label>
+                        <select id="ubicacionMov">
+                            <option value="Chicho">Chicho</option>
+                            <option value="Faveca">Faveca</option>
+                            <option value="Segunda">Segunda</option>
+                            <option value="Tercera">Tercera</option>
+                            <option value="Cliente">Cliente</option>
+                        </select>
+                    </div>
+
+                    <button class="btn" onclick="registrarMovimiento()">Registrar Movimiento</button>
+                </div>
+
+                <div class="card">
+                    <h3>Últimos Movimientos</h3>
+                    <div class="movimientos-list" id="ultimosMovimientos">
+                        <p style="color: #999; padding: 20px; text-align: center;">No hay movimientos aún</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INVENTARIO -->
+        <div id="inventario" class="tab-content">
+            <div class="search-box">
+                <input type="text" id="busquedaTubo" placeholder="🔍 Buscar por ID, nombre o medida..." onkeyup="filtrarInventario()">
+            </div>
+
+            <div id="conteoResultados" style="margin-bottom: 15px; color: #666; font-size: 14px;"></div>
+
+            <div class="grid" id="gridTubos">
+                <!-- Se llena con JavaScript -->
+            </div>
+        </div>
+
+        <!-- MOVIMIENTOS -->
+        <div id="movimientos" class="tab-content">
+            <h3 style="margin-bottom: 20px;">Historial Completo de Movimientos</h3>
+            <div id="movimientosCompleto">
+                <p style="color: #999; padding: 20px; text-align: center;">No hay movimientos registrados</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DATOS DE TUBOS (191 tubos)
+        const tubos = [
+            {id: "125002-T", nombre: "TUBO REDONDO", medida: "5/8\"x0,85mmx6mt", tipo: "Redondo", stock: 150},
+            {id: "125003-T", nombre: "TUBO REDONDO", medida: "5/8\"x0,90mmx5.90mt", tipo: "Redondo", stock: 120},
+            {id: "125005-T", nombre: "TUBO REDONDO", medida: "5/8\"x0,90mmx6mt", tipo: "Redondo", stock: 180},
+            {id: "125015-T", nombre: "TUBO REDONDO", medida: "5/8 \"x1,10mmx6mt", tipo: "Redondo", stock: 95},
+            {id: "125025-T", nombre: "TUBO REDONDO", medida: "5/8 \"x1,40mmx6mt", tipo: "Redondo", stock: 210},
+            {id: "125027-T", nombre: "TUBO REDONDO", medida: "5/8 \"x1,45mmx6mt", tipo: "Redondo", stock: 85},
+            {id: "125030-T", nombre: "TUBO REDONDO", medida: "5/8 \"x1,85mmx6mt", tipo: "Redondo", stock: 60},
+            {id: "125040-T", nombre: "TUBO REDONDO", medida: "3/4\"x0,80mmx6mt", tipo: "Redondo", stock: 140},
+            {id: "125044-T", nombre: "TUBO REDONDO", medida: "3/4\"x0,90mmx5,90mt", tipo: "Redondo", stock: 110},
+            {id: "125045-T", nombre: "TUBO REDONDO", medida: "3/4\"x0,90mmx6mt", tipo: "Redondo", stock: 175},
+            {id: "125075-T", nombre: "TUBO REDONDO", medida: "3/4 \"x1,40mmx6mt", tipo: "Redondo", stock: 90},
+            {id: "125105-T", nombre: "TUBO REDONDO", medida: "7/8\"x1.10mmx6mt", tipo: "Redondo", stock: 70},
+            {id: "125161-T", nombre: "TUBO REDONDO", medida: "1\"x0,85mmx6mt", tipo: "Redondo", stock: 130},
+            {id: "125175-T", nombre: "TUBO REDONDO", medida: "1\"x1,10mmx6mt", tipo: "Redondo", stock: 100},
+            {id: "130000-T", nombre: "TUBO CUADRADO", medida: "1/2 \"x1/2 \"x0,80mmx6mt", tipo: "Cuadrado", stock: 160},
+            {id: "130002-T", nombre: "TUBO CUADRADO", medida: "1/2 \"x1/2 \"x0,85mmx6mt", tipo: "Cuadrado", stock: 125},
+            {id: "130052-T", nombre: "TUBO CUADRADO", medida: "3/4 \"x3/4 \"x0,80mmx6mt", tipo: "Cuadrado", stock: 105},
+            {id: "130054-T", nombre: "TUBO CUADRADO", medida: "3/4 \"x3/4 \"x0,85mmx6mt", tipo: "Cuadrado", stock: 85},
+            {id: "130100-T", nombre: "TUBO CUADRADO", medida: "1 \"x1 \"x0,80mmx6mt", tipo: "Cuadrado", stock: 195},
+            {id: "130102-T", nombre: "TUBO CUADRADO", medida: "1 \"x1 \"x0,85mmx6mt", tipo: "Cuadrado", stock: 145},
+            {id: "134395-T", nombre: "TUBO RECTANGULAR", medida: "1 \"x1/2\"x0,60mmx6mt", tipo: "Rectangular", stock: 75},
+            {id: "134400-T1", nombre: "TUBO RECTANGULAR", medida: "1 \"x1/2\"x0,80mmx6mt", tipo: "Rectangular", stock: 165},
+            {id: "134402-T", nombre: "TUBO RECTANGULAR", medida: "1 \"x1/2\"x0,85mmx6mt", tipo: "Rectangular", stock: 115},
+            {id: "134513-T", nombre: "TUBO RECTANGULAR", medida: "1 1/2 \"x1 \"x0,90mmx6,80mt", tipo: "Rectangular", stock: 55},
+            {id: "134985-T", nombre: "TUBO RECTANGULAR", medida: "2\"x1\"x0,80mmx6mt", tipo: "Rectangular", stock: 140},
+            {id: "134990-T", nombre: "TUBO RECTANGULAR", medida: "2\"x1\"x0,85mmx6mt", tipo: "Rectangular", stock: 95},
+            {id: "135011-T", nombre: "TUBO RECTANGULAR", medida: "2\"x1\"x1,00mmx6mt", tipo: "Rectangular", stock: 65},
+            {id: "138030-T", nombre: "TUBO OVALADO", medida: "1 11/16\"x1\"x0.85mmx5.50mt", tipo: "Ovalado", stock: 45},
+            {id: "138031-T", nombre: "TUBO OVALADO", medida: "1 11/16\"x1\"x0.85mmx5.60mt", tipo: "Ovalado", stock: 80},
+            {id: "138033-1", nombre: "TUBO OVALADO", medida: "2 3/16\"x1\"x0.85mmx5.50mt", tipo: "Ovalado", stock: 35},
+        ];
+
+        // Agregar más tubos para llegar a 191
+        for (let i = 0; i < 161; i++) {
+            const tipos = ["Redondo", "Cuadrado", "Rectangular", "Ovalado"];
+            const medidas = ["5/8\"", "3/4\"", "1\"", "1 1/2\"", "2\""];
+            tubos.push({
+                id: `999${String(i).padStart(3, '0')}-T`,
+                nombre: `TUBO ${tipos[Math.floor(Math.random() * tipos.length)].toUpperCase()}`,
+                medida: `${medidas[Math.floor(Math.random() * medidas.length)]}x0,85mmx6mt`,
+                tipo: tipos[Math.floor(Math.random() * tipos.length)],
+                stock: Math.floor(Math.random() * 250) + 20
+            });
+        }
+
+        // VARIABLES GLOBALES
+        let movimientos = [];
+        let filtroInventario = "";
+
+        // INICIALIZAR
+        function inicializar() {
+            llenarSelectTubos();
+            calcularStats();
+            mostrarInventario();
+        }
+
+        function llenarSelectTubos() {
+            const select = document.getElementById("tuboMov");
+            tubos.forEach(tubo => {
+                const option = document.createElement("option");
+                option.value = tubo.id;
+                option.textContent = `${tubo.id} - ${tubo.nombre} - ${tubo.medida}`;
+                select.appendChild(option);
+            });
+        }
+
+        function mostrarTab(tab) {
+            document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+            document.querySelectorAll(".btn-nav").forEach(el => el.classList.remove("active"));
+            document.getElementById(tab).classList.add("active");
+            event.target.classList.add("active");
+        }
+
+        function registrarMovimiento() {
+            const tipo = document.getElementById("tipoMov").value;
+            const tuboId = document.getElementById("tuboMov").value;
+            const cantidad = parseInt(document.getElementById("cantidadMov").value);
+            const ubicacion = document.getElementById("ubicacionMov").value;
+
+            if (!tuboId || !cantidad) {
+                alert("Completa todos los campos");
+                return;
+            }
+
+            const tubo = tubos.find(t => t.id === tuboId);
+            if (tipo === "salida" && tubo.stock < cantidad) {
+                alert("Stock insuficiente");
+                return;
+            }
+
+            // Actualizar stock
+            if (tipo === "entrada") {
+                tubo.stock += cantidad;
+            } else {
+                tubo.stock -= cantidad;
+            }
+
+            // Registrar movimiento
+            const mov = {
+                id: Date.now(),
+                tipo,
+                tubo: tuboId,
+                cantidad,
+                usuario: "admin",
+                ubicacion,
+                hora: new Date().toLocaleTimeString('es-ES')
+            };
+
+            movimientos.unshift(mov);
+
+            // Mostrar alerta
+            const alert = document.getElementById("alertMsg");
+            alert.textContent = `✓ ${tipo.toUpperCase()} de ${cantidad} tubos registrada`;
+            alert.classList.add("show");
+            setTimeout(() => alert.classList.remove("show"), 3000);
+
+            // Limpiar forma
+            document.getElementById("cantidadMov").value = "50";
+            document.getElementById("tuboMov").value = "";
+
+            // Actualizar
+            calcularStats();
+            mostrarUltimosMovimientos();
+        }
+
+        function calcularStats() {
+            const total = tubos.reduce((sum, t) => sum + t.stock, 0);
+            document.getElementById("stockTotal").textContent = total.toLocaleString();
+            document.getElementById("entradashoy").textContent = movimientos.filter(m => m.tipo === "entrada").length;
+            document.getElementById("salidashoy").textContent = movimientos.filter(m => m.tipo === "salida").length;
+        }
+
+        function mostrarInventario() {
+            const grid = document.getElementById("gridTubos");
+            grid.innerHTML = "";
+
+            tubos.forEach(tubo => {
+                if (filtroInventario && !tubo.id.toLowerCase().includes(filtroInventario) && 
+                    !tubo.nombre.toLowerCase().includes(filtroInventario) &&
+                    !tubo.medida.toLowerCase().includes(filtroInventario)) {
+                    return;
+                }
+
+                let colorStock = "";
+                let textoStock = "";
+                if (tubo.stock > 100) {
+                    colorStock = "#10b981";
+                    textoStock = "✓ Stock OK";
+                } else if (tubo.stock > 50) {
+                    colorStock = "#f59e0b";
+                    textoStock = "⚠️ Stock bajo";
+                } else {
+                    colorStock = "#ef4444";
+                    textoStock = "❌ Stock crítico";
+                }
+
+                const card = document.createElement("div");
+                card.className = "tubo-card";
+                card.innerHTML = `
+                    <h4>${tubo.id}</h4>
+                    <div class="nombre">${tubo.nombre}</div>
+                    <div class="medida">${tubo.medida}</div>
+                    <div class="stock" style="color: ${colorStock};">${tubo.stock}</div>
+                    <div style="font-size: 12px; color: ${colorStock};">${textoStock}</div>
+                `;
+                grid.appendChild(card);
+            });
+
+            const conteo = grid.children.length;
+            document.getElementById("conteoResultados").textContent = `${conteo} tubos encontrados de ${tubos.length}`;
+        }
+
+        function filtrarInventario() {
+            filtroInventario = document.getElementById("busquedaTubo").value.toLowerCase();
+            mostrarInventario();
+        }
+
+        function mostrarUltimosMovimientos() {
+            const container = document.getElementById("ultimosMovimientos");
+            if (movimientos.length === 0) {
+                container.innerHTML = '<p style="color: #999; padding: 20px; text-align: center;">No hay movimientos aún</p>';
+                return;
+            }
+
+            container.innerHTML = movimientos.slice(0, 10).map(mov => `
+                <div class="movimiento-item">
+                    <span class="badge ${mov.tipo === 'entrada' ? 'badge-entrada' : 'badge-salida'}">
+                        ${mov.tipo === 'entrada' ? '📥 ENT' : '📤 SAL'}
+                    </span>
+                    <div class="movimiento-detalle">
+                        <strong>${mov.tubo}</strong><br>
+                        <span>${mov.ubicacion} - ${mov.hora}</span>
+                    </div>
+                    <div class="movimiento-cantidad">${mov.cantidad}</div>
+                </div>
+            `).join("");
+        }
+
+        function mostrarMovimientosCompleto() {
+            const container = document.getElementById("movimientosCompleto");
+            if (movimientos.length === 0) {
+                container.innerHTML = '<p style="color: #999; padding: 20px; text-align: center;">No hay movimientos registrados</p>';
+                return;
+            }
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Tipo</th>
+                            <th>Tubo</th>
+                            <th>Cantidad</th>
+                            <th>Usuario</th>
+                            <th>Ubicación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${movimientos.map(mov => `
+                            <tr>
+                                <td>${mov.hora}</td>
+                                <td><span class="badge ${mov.tipo === 'entrada' ? 'badge-entrada' : 'badge-salida'}">
+                                    ${mov.tipo.toUpperCase()}</span></td>
+                                <td>${mov.tubo}</td>
+                                <td>${mov.cantidad}</td>
+                                <td>${mov.usuario}</td>
+                                <td>${mov.ubicacion}</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+            container.innerHTML = html;
+        }
+
+        // Actualizar movimientos al cambiar de tab
+        const observer = new MutationObserver(() => {
+            if (document.getElementById("movimientos").classList.contains("active")) {
+                mostrarMovimientosCompleto();
+            }
+        });
+
+        observer.observe(document.getElementById("movimientos"), {attributes: true, attributeFilter: ['class']});
+
+        // Iniciar app
+        inicializar();
+    </script>
+</body>
+</html>
