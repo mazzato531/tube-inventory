@@ -169,6 +169,14 @@
             background: #5568d3;
         }
 
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
         .alert {
             padding: 12px 16px;
             background: #dcfce7;
@@ -180,6 +188,11 @@
 
         .alert.show {
             display: block;
+        }
+
+        .alert.error {
+            background: #fee2e2;
+            color: #991b1b;
         }
 
         table {
@@ -219,18 +232,6 @@
         .badge-salida {
             background: #fee2e2;
             color: #991b1b;
-        }
-
-        .badge-stock-ok {
-            color: #10b981;
-        }
-
-        .badge-stock-bajo {
-            color: #f59e0b;
-        }
-
-        .badge-stock-no {
-            color: #ef4444;
         }
 
         .tubo-card {
@@ -321,6 +322,58 @@
             text-align: right;
         }
 
+        .tubo-list {
+            margin-top: 20px;
+        }
+
+        .tubo-item {
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tubo-item-info {
+            flex: 1;
+        }
+
+        .tubo-item-info h5 {
+            color: #667eea;
+            margin-bottom: 3px;
+        }
+
+        .tubo-item-info p {
+            font-size: 12px;
+            color: #999;
+            margin: 2px 0;
+        }
+
+        .tubo-item-stock {
+            font-weight: bold;
+            font-size: 18px;
+            color: #667eea;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -350,6 +403,17 @@
             table th, table td {
                 padding: 8px;
             }
+
+            .tubo-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .tubo-item-stock {
+                width: 100%;
+                text-align: left;
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
@@ -361,8 +425,9 @@
                 <button class="btn-nav active" onclick="mostrarTab('dashboard')">Dashboard</button>
                 <button class="btn-nav" onclick="mostrarTab('inventario')">Inventario</button>
                 <button class="btn-nav" onclick="mostrarTab('movimientos')">Movimientos</button>
+                <button class="btn-nav" onclick="mostrarTab('admin')">Administración</button>
             </div>
-            <div class="user">admin (Demo)</div>
+            <div class="user">👤 admin (Demo)</div>
         </div>
 
         <!-- DASHBOARD -->
@@ -454,11 +519,61 @@
                 <p style="color: #999; padding: 20px; text-align: center;">No hay movimientos registrados</p>
             </div>
         </div>
+
+        <!-- ADMINISTRACIÓN -->
+        <div id="admin" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <h3>➕ Crear Nuevo Tubo</h3>
+                    <div id="alertMsgAdmin" class="alert"></div>
+
+                    <div class="form-group">
+                        <label>ID del Tubo (ej: 200000-T)</label>
+                        <input type="text" id="nuevoTuboId" placeholder="Código único" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="nuevoTuboNombre" placeholder="Ej: TUBO REDONDO" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Medida</label>
+                        <input type="text" id="nuevoTuboMedida" placeholder="Ej: 5/8\"x0,85mmx6mt" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        <select id="nuevoTuboTipo" required>
+                            <option value="">-- Selecciona tipo --</option>
+                            <option value="Redondo">Redondo</option>
+                            <option value="Cuadrado">Cuadrado</option>
+                            <option value="Rectangular">Rectangular</option>
+                            <option value="Ovalado">Ovalado</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Stock Inicial</label>
+                        <input type="number" id="nuevoTuboStock" min="0" value="100" required>
+                    </div>
+
+                    <button class="btn" onclick="crearNuevoTubo()">✓ Crear Tubo</button>
+                </div>
+
+                <div class="card">
+                    <h3>📋 Tubos Creados</h3>
+                    <div class="tubo-list" id="tubosCreadosLista">
+                        <p style="color: #999; padding: 20px; text-align: center;">No hay tubos personalizados creados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // DATOS DE TUBOS (191 tubos)
-        const tubos = [
+        // DATOS DE TUBOS (191 tubos originales)
+        const tubosOriginales = [
             {id: "125002-T", nombre: "TUBO REDONDO", medida: "5/8\"x0,85mmx6mt", tipo: "Redondo", stock: 150},
             {id: "125003-T", nombre: "TUBO REDONDO", medida: "5/8\"x0,90mmx5.90mt", tipo: "Redondo", stock: 120},
             {id: "125005-T", nombre: "TUBO REDONDO", medida: "5/8\"x0,90mmx6mt", tipo: "Redondo", stock: 180},
@@ -491,11 +606,11 @@
             {id: "138033-1", nombre: "TUBO OVALADO", medida: "2 3/16\"x1\"x0.85mmx5.50mt", tipo: "Ovalado", stock: 35},
         ];
 
-        // Agregar más tubos para llegar a 191
+        // Agregar 161 tubos más para llegar a 191
         for (let i = 0; i < 161; i++) {
             const tipos = ["Redondo", "Cuadrado", "Rectangular", "Ovalado"];
             const medidas = ["5/8\"", "3/4\"", "1\"", "1 1/2\"", "2\""];
-            tubos.push({
+            tubosOriginales.push({
                 id: `999${String(i).padStart(3, '0')}-T`,
                 nombre: `TUBO ${tipos[Math.floor(Math.random() * tipos.length)].toUpperCase()}`,
                 medida: `${medidas[Math.floor(Math.random() * medidas.length)]}x0,85mmx6mt`,
@@ -505,18 +620,115 @@
         }
 
         // VARIABLES GLOBALES
+        let tubos = [...tubosOriginales];
+        let tubosCreadosHoy = [];
         let movimientos = [];
         let filtroInventario = "";
 
         // INICIALIZAR
         function inicializar() {
+            cargarDelLocal();
             llenarSelectTubos();
             calcularStats();
             mostrarInventario();
+            mostrarTubosCreadosLista();
+        }
+
+        function cargarDelLocal() {
+            const guardado = localStorage.getItem('tubosCreadosHoy');
+            if (guardado) {
+                tubosCreadosHoy = JSON.parse(guardado);
+                tubos = [...tubosOriginales, ...tubosCreadosHoy];
+            }
+        }
+
+        function guardarAlLocal() {
+            localStorage.setItem('tubosCreadosHoy', JSON.stringify(tubosCreadosHoy));
+        }
+
+        function crearNuevoTubo() {
+            const id = document.getElementById('nuevoTuboId').value.trim();
+            const nombre = document.getElementById('nuevoTuboNombre').value.trim();
+            const medida = document.getElementById('nuevoTuboMedida').value.trim();
+            const tipo = document.getElementById('nuevoTuboTipo').value;
+            const stock = parseInt(document.getElementById('nuevoTuboStock').value);
+
+            const alert = document.getElementById('alertMsgAdmin');
+
+            if (!id || !nombre || !medida || !tipo) {
+                alert.textContent = '❌ Completa todos los campos';
+                alert.classList.add('show', 'error');
+                setTimeout(() => alert.classList.remove('show'), 3000);
+                return;
+            }
+
+            if (tubos.find(t => t.id === id)) {
+                alert.textContent = '❌ El ID ya existe en el inventario';
+                alert.classList.add('show', 'error');
+                setTimeout(() => alert.classList.remove('show'), 3000);
+                return;
+            }
+
+            const nuevoTubo = {id, nombre, medida, tipo, stock};
+            tubosCreadosHoy.push(nuevoTubo);
+            tubos.push(nuevoTubo);
+            guardarAlLocal();
+
+            alert.textContent = `✓ Tubo ${id} creado correctamente`;
+            alert.classList.add('show');
+            alert.classList.remove('error');
+            setTimeout(() => alert.classList.remove('show'), 3000);
+
+            // Limpiar formulario
+            document.getElementById('nuevoTuboId').value = '';
+            document.getElementById('nuevoTuboNombre').value = '';
+            document.getElementById('nuevoTuboMedida').value = '';
+            document.getElementById('nuevoTuboTipo').value = '';
+            document.getElementById('nuevoTuboStock').value = '100';
+
+            // Actualizar
+            document.getElementById('totalTubos').textContent = tubos.length;
+            llenarSelectTubos();
+            mostrarTubosCreadosLista();
+            calcularStats();
+        }
+
+        function mostrarTubosCreadosLista() {
+            const container = document.getElementById('tubosCreadosLista');
+            if (tubosCreadosHoy.length === 0) {
+                container.innerHTML = '<p style="color: #999; padding: 20px; text-align: center;">No hay tubos personalizados creados</p>';
+                return;
+            }
+
+            container.innerHTML = tubosCreadosHoy.map(tubo => `
+                <div class="tubo-item">
+                    <div class="tubo-item-info">
+                        <h5>${tubo.id}</h5>
+                        <p><strong>${tubo.nombre}</strong></p>
+                        <p>${tubo.medida} • ${tubo.tipo}</p>
+                    </div>
+                    <div class="tubo-item-stock">
+                        ${tubo.stock} unidades
+                    </div>
+                    <button class="btn-delete" onclick="eliminarTubo('${tubo.id}')">Eliminar</button>
+                </div>
+            `).join('');
+        }
+
+        function eliminarTubo(id) {
+            if (confirm(`¿Eliminar tubo ${id}?`)) {
+                tubosCreadosHoy = tubosCreadosHoy.filter(t => t.id !== id);
+                tubos = tubos.filter(t => t.id !== id);
+                guardarAlLocal();
+                document.getElementById('totalTubos').textContent = tubos.length;
+                llenarSelectTubos();
+                mostrarTubosCreadosLista();
+            }
         }
 
         function llenarSelectTubos() {
             const select = document.getElementById("tuboMov");
+            select.innerHTML = '<option value="">-- Selecciona un tubo --</option>';
             tubos.forEach(tubo => {
                 const option = document.createElement("option");
                 option.value = tubo.id;
@@ -530,6 +742,10 @@
             document.querySelectorAll(".btn-nav").forEach(el => el.classList.remove("active"));
             document.getElementById(tab).classList.add("active");
             event.target.classList.add("active");
+
+            if (tab === 'admin') {
+                mostrarTubosCreadosLista();
+            }
         }
 
         function registrarMovimiento() {
@@ -570,10 +786,11 @@
             movimientos.unshift(mov);
 
             // Mostrar alerta
-            const alert = document.getElementById("alertMsg");
-            alert.textContent = `✓ ${tipo.toUpperCase()} de ${cantidad} tubos registrada`;
-            alert.classList.add("show");
-            setTimeout(() => alert.classList.remove("show"), 3000);
+            const alertMsg = document.getElementById("alertMsg");
+            alertMsg.textContent = `✓ ${tipo.toUpperCase()} de ${cantidad} tubos registrada`;
+            alertMsg.classList.add("show");
+            alertMsg.classList.remove("error");
+            setTimeout(() => alertMsg.classList.remove("show"), 3000);
 
             // Limpiar forma
             document.getElementById("cantidadMov").value = "50";
